@@ -31,11 +31,9 @@ import com.alipay.common.tracer.core.span.SofaTracerSpan;
 import com.alipay.common.tracer.core.span.SofaTracerSpanReferenceRelationship;
 import com.alipay.common.tracer.core.utils.AssertUtils;
 import com.alipay.common.tracer.core.utils.StringUtils;
-import io.opentracing.References;
-import io.opentracing.Span;
-import io.opentracing.SpanContext;
-import io.opentracing.Tracer;
+import io.opentracing.*;
 import io.opentracing.propagation.Format;
+import io.opentracing.util.ThreadLocalScopeManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,6 +56,9 @@ public class SofaTracer implements Tracer {
      */
     private final String              tracerType;
 
+    private Reporter            commonReporter;
+
+
     /***
      * 作为客户端运行时的 Reporter
      */
@@ -67,6 +68,8 @@ public class SofaTracer implements Tracer {
      * 作为服务端运行时的 Reporter
      */
     private final Reporter            serverReporter;
+
+    private final ScopeManager        scopeManager = new ThreadLocalScopeManager();
 
     /***
      * 这个 tracerTags 主要用于缓存和 tracer 全局相关的一些信息
@@ -87,6 +90,31 @@ public class SofaTracer implements Tracer {
         if (tracerTags != null && tracerTags.size() > 0) {
             this.tracerTags.putAll(tracerTags);
         }
+    }
+
+    public Reporter getCommonReporter() {
+        return commonReporter;
+    }
+
+    public void setCommonReporter(Reporter commonReporter) {
+        this.commonReporter = commonReporter;
+    }
+
+    @Override
+    public ScopeManager scopeManager() {
+        return scopeManager;
+    }
+
+    /**
+     * 从当前上下文中获取到 span
+     * @return
+     */
+    @Override
+    public Span activeSpan() {
+        if (scopeManager.active() != null) {
+            return scopeManager.active().span();
+        }
+        return null;
     }
 
     @Override
@@ -256,6 +284,11 @@ public class SofaTracer implements Tracer {
         }
 
         @Override
+        public SpanBuilder ignoreActiveSpan() {
+            return this;
+        }
+
+        @Override
         public Tracer.SpanBuilder withTag(String key, String value) {
             this.tags.put(key, value);
             return this;
@@ -277,6 +310,16 @@ public class SofaTracer implements Tracer {
         public Tracer.SpanBuilder withStartTimestamp(long microseconds) {
             this.startTime = microseconds;
             return this;
+        }
+
+        @Override
+        public Scope startActive(boolean finishSpanOnClose) {
+            return scopeManager.activate(start(), finishSpanOnClose);
+        }
+
+        @Override
+        public Span startManual() {
+            return null;
         }
 
         @Override
@@ -383,6 +426,8 @@ public class SofaTracer implements Tracer {
 
         private final String        tracerType;
 
+        private Reporter            commonReporter;
+
         /***
          * 作为客户端运行时的 Reporter
          */
@@ -400,6 +445,11 @@ public class SofaTracer implements Tracer {
         public Builder(String tracerType) {
             AssertUtils.isTrue(StringUtils.isNotBlank(tracerType), "tracerType must be not empty");
             this.tracerType = tracerType;
+        }
+
+        public Builder withCommonReporter(Reporter commonReporter) {
+            this.commonReporter = commonReporter;
+            return this;
         }
 
         /***
@@ -479,8 +529,12 @@ public class SofaTracer implements Tracer {
             } catch (Exception e) {
                 SelfLog.error("Failed to get tracer sampler strategy;");
             }
-            return new SofaTracer(this.tracerType, this.clientReporter, this.serverReporter,
-                this.sampler, this.tracerTags);
+            SofaTracer sofaTracer = new SofaTracer(this.tracerType, this.clientReporter, this.serverReporter,
+                    this.sampler, this.tracerTags);
+            if (commonReporter!=null){
+                sofaTracer.setCommonReporter(commonReporter);
+            }
+            return sofaTracer;
         }
     }
 }

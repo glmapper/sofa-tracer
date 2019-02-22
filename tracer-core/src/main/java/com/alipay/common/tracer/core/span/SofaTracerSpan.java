@@ -172,10 +172,10 @@ public class SofaTracerSpan implements Span {
         SpanExtensionFactory.logStoppedSpan(this);
     }
 
-    @Override
-    public void close() {
-        this.finish();
-    }
+    //    @Override
+    //    public void close() {
+    //        this.finish();
+    //    }
 
     @Override
     public Span setTag(String key, String value) {
@@ -250,20 +250,20 @@ public class SofaTracerSpan implements Span {
         return this.log(System.currentTimeMillis(), map);
     }
 
-    @Override
-    public Span log(String eventName, /* @Nullable */Object payload) {
-        //key:value
-        return this.log(System.currentTimeMillis(), eventName, payload);
-    }
+    //    @Override
+    //    public Span log(String eventName, /* @Nullable */Object payload) {
+    //        //key:value
+    //        return this.log(System.currentTimeMillis(), eventName, payload);
+    //    }
 
-    @Override
-    public Span log(long currentTime, String eventName, /* @Nullable */Object payload) {
-        //key:value
-        AssertUtils.isTrue(currentTime >= startTime, "current time must greater than start time");
-        Map<String, Object> fields = new HashMap<String, Object>();
-        fields.put(eventName, payload);
-        return this.log(currentTime, fields);
-    }
+    //    @Override
+    //    public Span log(long currentTime, String eventName, /* @Nullable */Object payload) {
+    //        //key:value
+    //        AssertUtils.isTrue(currentTime >= startTime, "current time must greater than start time");
+    //        Map<String, Object> fields = new HashMap<String, Object>();
+    //        fields.put(eventName, payload);
+    //        return this.log(currentTime, fields);
+    //    }
 
     /***
      * 默认设置和读取的都是业务 baggage

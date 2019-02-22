@@ -30,10 +30,11 @@
         <module>tracer-test/logback-test</module>
         <module>tracer-test/log4j2-test</module>
         <module>tracer-test/log4j-test</module>
+        <module>tracer-sofa-opentracing-starter</module>
     </modules>
 
     <properties>
-        <opentracing.version>0.22.0</opentracing.version>
+        <opentracing.version>0.31.0</opentracing.version>
         <sofa.tracer.version>2.3.3-SNAPSHOT</sofa.tracer.version>
         <java.compiler.source.version>1.6</java.compiler.source.version>
         <java.compiler.target.version>1.6</java.compiler.target.version>
