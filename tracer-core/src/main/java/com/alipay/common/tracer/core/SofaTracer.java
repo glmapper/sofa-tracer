@@ -56,8 +56,7 @@ public class SofaTracer implements Tracer {
      */
     private final String              tracerType;
 
-    private Reporter            commonReporter;
-
+    private Reporter                  commonReporter;
 
     /***
      * 作为客户端运行时的 Reporter
@@ -162,6 +161,8 @@ public class SofaTracer implements Tracer {
             if (this.serverReporter != null) {
                 this.serverReporter.report(span);
             }
+        } else if (this.commonReporter != null) {
+            this.commonReporter.report(span);
         } else {
             //ignore 不统计
             SelfLog.warn("Span reported neither client nor server.Ignore!");
@@ -529,9 +530,9 @@ public class SofaTracer implements Tracer {
             } catch (Exception e) {
                 SelfLog.error("Failed to get tracer sampler strategy;");
             }
-            SofaTracer sofaTracer = new SofaTracer(this.tracerType, this.clientReporter, this.serverReporter,
-                    this.sampler, this.tracerTags);
-            if (commonReporter!=null){
+            SofaTracer sofaTracer = new SofaTracer(this.tracerType, this.clientReporter,
+                this.serverReporter, this.sampler, this.tracerTags);
+            if (commonReporter != null) {
                 sofaTracer.setCommonReporter(commonReporter);
             }
             return sofaTracer;

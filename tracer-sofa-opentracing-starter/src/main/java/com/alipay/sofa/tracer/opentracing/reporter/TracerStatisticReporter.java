@@ -1,7 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.alipay.sofa.tracer.opentracing.reporter;
 
 import com.alipay.common.tracer.core.appender.builder.JsonStringBuilder;
-import com.alipay.common.tracer.core.appender.file.LoadTestAwareAppender;
 import com.alipay.common.tracer.core.appender.self.SelfLog;
 import com.alipay.common.tracer.core.appender.self.Timestamp;
 import com.alipay.common.tracer.core.reporter.stat.AbstractSofaTracerStatisticReporter;
@@ -21,21 +36,23 @@ public class TracerStatisticReporter extends AbstractSofaTracerStatisticReporter
 
     private static JsonStringBuilder jsonBuffer = new JsonStringBuilder();
 
-    public TracerStatisticReporter(String statTracerName, String rollingPolicy, String logReserveConfig) {
+    public TracerStatisticReporter(String statTracerName, String rollingPolicy,
+                                   String logReserveConfig) {
         super(statTracerName, rollingPolicy, logReserveConfig);
     }
+
     @Override
     public void doReportStat(SofaTracerSpan sofaTracerSpan) {
         Map<String, String> tagsWithStr = sofaTracerSpan.getTagsWithStr();
         StatMapKey statKey = new StatMapKey();
         Set<String> keys = tagsWithStr.keySet();
         for (String key : keys) {
-            statKey.addKey(key,tagsWithStr.get(key));
+            statKey.addKey(key, tagsWithStr.get(key));
         }
         //success
         String resultCode = tagsWithStr.get(Tags.HTTP_STATUS);
         boolean success = (resultCode != null && resultCode.length() > 0 && this
-                .isHttpOrMvcSuccess(resultCode));
+            .isHttpOrMvcSuccess(resultCode));
         statKey.setResult(success ? "true" : "false");
         //value the count and duration
         long duration = sofaTracerSpan.getEndTime() - sofaTracerSpan.getStartTime();

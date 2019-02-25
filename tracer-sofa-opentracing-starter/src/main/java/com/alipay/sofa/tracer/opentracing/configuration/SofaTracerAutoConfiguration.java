@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.alipay.sofa.tracer.opentracing.configuration;
 
 import com.alipay.common.tracer.core.SofaTracer;
@@ -25,17 +41,13 @@ import java.util.HashMap;
  * @since:
  **/
 @Configuration
-@ConditionalOnBean(SofaTracerProperties.class)
 public class SofaTracerAutoConfiguration {
 
     private static final String tracerType = "opentracing-tracer";
 
-    @Autowired
-    SofaTracerProperties sofaTracerProperties;
-
     @Bean
     @ConditionalOnMissingBean
-    public Tracer tracer(){
+    public Tracer tracer() {
         SofaTracer.Builder builder = new SofaTracer.Builder(tracerType);
         builder.build();
         builder.withSampler(sampler());
@@ -46,24 +58,31 @@ public class SofaTracerAutoConfiguration {
         return tracer;
     }
 
-    public Sampler sampler(){
+    public Sampler sampler() {
         SamplerProperties configuration = new SamplerProperties();
         configuration.setPercentage(100);
         return new SofaTracerPercentageBasedSampler(configuration);
     }
 
-    public Reporter reporter(){
+    public Reporter reporter() {
         //构造摘要实例
-        String digestRollingPolicy = SofaTracerConfiguration.getRollingPolicy(TracerLogEnum.TRACER_DIGEST.getRollingKey());
-        String digestLogReserveConfig = SofaTracerConfiguration.getLogReserveConfig(TracerLogEnum.TRACER_DIGEST.getLogNameKey());
+        String digestRollingPolicy = SofaTracerConfiguration
+            .getRollingPolicy(TracerLogEnum.TRACER_DIGEST.getRollingKey());
+        String digestLogReserveConfig = SofaTracerConfiguration
+            .getLogReserveConfig(TracerLogEnum.TRACER_DIGEST.getLogNameKey());
 
         TracerDigestJsonEncoder spanEncoder = new TracerDigestJsonEncoder();
-        String statLogReserveConfig = SofaTracerConfiguration.getLogReserveConfig(TracerLogEnum.TRACER_STAT
-                .getLogNameKey());
-        TracerStatisticReporter statReporter = new TracerStatisticReporter(TracerLogEnum.TRACER_STAT.getDefaultLogName(),TracerLogEnum.TRACER_STAT.getRollingKey(),statLogReserveConfig);
+        String statLogReserveConfig = SofaTracerConfiguration
+            .getLogReserveConfig(TracerLogEnum.TRACER_STAT.getLogNameKey());
+        String statRollingPolicy = SofaTracerConfiguration
+            .getRollingPolicy(TracerLogEnum.TRACER_STAT.getRollingKey());
+        TracerStatisticReporter statReporter = new TracerStatisticReporter(
+            TracerLogEnum.TRACER_STAT.getDefaultLogName(), statRollingPolicy, statLogReserveConfig);
         //构造实例
-        DiskReporterImpl reporter = new DiskReporterImpl(TracerLogEnum.TRACER_DIGEST.getDefaultLogName(), digestRollingPolicy,
-                digestLogReserveConfig, spanEncoder, statReporter, TracerLogEnum.TRACER_DIGEST.getLogNameKey());
+        DiskReporterImpl reporter = new DiskReporterImpl(
+            TracerLogEnum.TRACER_DIGEST.getDefaultLogName(), digestRollingPolicy,
+            digestLogReserveConfig, spanEncoder, statReporter,
+            TracerLogEnum.TRACER_DIGEST.getLogNameKey());
         return reporter;
     }
 }
