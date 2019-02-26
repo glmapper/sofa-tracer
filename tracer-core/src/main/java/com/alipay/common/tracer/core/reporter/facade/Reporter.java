@@ -19,37 +19,33 @@ package com.alipay.common.tracer.core.reporter.facade;
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
 
 /**
- * Reporter
+ * Reporter ： SOFATracer data reporting top-level interface definition
  *
  * @author yangguanchao
  * @since 2017/07/14
  */
 public interface Reporter {
 
-    /***
-     * 上报到远程服务器的持久化类型
-     */
+    /** remote reporter */
     String REMOTE_REPORTER    = "REMOTE_REPORTER";
 
-    /**
-     * 组合类型
-     */
+    /** composite reporter */
     String COMPOSITE_REPORTER = "COMPOSITE_REPORTER";
 
-    /***
-     * 获取 Reporter 实例类型
-     * @return 类型
+    /**
+     * Get the Reporter instance type
+     * @return reporter type
      */
     String getReporterType();
 
-    /***
-     * 输出 span
-     * @param span 要被输出的 span
+    /**
+     * report span
+     * @param span
      */
     void report(SofaTracerSpan span);
 
-    /***
-     *关闭输出 span 的能力
+    /**
+     * Turn off reporting capability
      */
     void close();
 }

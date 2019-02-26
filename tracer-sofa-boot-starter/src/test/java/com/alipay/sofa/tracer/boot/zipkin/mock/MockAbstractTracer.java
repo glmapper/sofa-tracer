@@ -34,63 +34,31 @@ public class MockAbstractTracer extends AbstractTracer {
     ZipkinSofaTracerSpanRemoteReporter remoteReporter = null;
 
     public MockAbstractTracer(String tracerType) {
-        super(tracerType, true, true);
+        super(tracerType, false, false);
     }
 
     @Override
-    protected Reporter generateReporter(AbstractSofaTracerStatisticReporter statReporter,
-                                        String logName, String logRollingKey, String logNameKey,
-                                        SpanEncoder<SofaTracerSpan> spanEncoder) {
+    protected String getReporterLogName() {
+        return "mock-digest.log";
+    }
+
+    @Override
+    protected String getReporterRollingKey() {
+        return "mock_digest_rolling";
+    }
+
+    @Override
+    protected String getReporterLogNameKey() {
+        return "mock_digest_log_name";
+    }
+
+    @Override
+    protected SpanEncoder<SofaTracerSpan> getEncoder() {
         return null;
     }
 
     @Override
-    protected String getClientDigestReporterLogName() {
-        return null;
-    }
-
-    @Override
-    protected String getClientDigestReporterRollingKey() {
-        return null;
-    }
-
-    @Override
-    protected String getClientDigestReporterLogNameKey() {
-        return null;
-    }
-
-    @Override
-    protected SpanEncoder<SofaTracerSpan> getClientDigestEncoder() {
-        return null;
-    }
-
-    @Override
-    protected AbstractSofaTracerStatisticReporter generateClientStatReporter() {
-        return null;
-    }
-
-    @Override
-    protected String getServerDigestReporterLogName() {
-        return null;
-    }
-
-    @Override
-    protected String getServerDigestReporterRollingKey() {
-        return null;
-    }
-
-    @Override
-    protected String getServerDigestReporterLogNameKey() {
-        return null;
-    }
-
-    @Override
-    protected SpanEncoder<SofaTracerSpan> getServerDigestEncoder() {
-        return null;
-    }
-
-    @Override
-    protected AbstractSofaTracerStatisticReporter generateServerStatReporter() {
+    protected AbstractSofaTracerStatisticReporter generateStatReporter() {
         return null;
     }
 }

@@ -35,10 +35,9 @@ public class SofaTracerStatisticReporterCycleTimesManager {
         return cycleTimesManager;
     }
 
-    /***
-     * 周期:秒
-     * 需要统一掉
-     * @param statisticReporter 周期统计时间
+    /**
+     * period: second
+     * @param statisticReporter statistic reporter
      */
     public static void registerStatReporter(SofaTracerStatisticReporter statisticReporter) {
         SofaTracerStatisticReporterManager sofaTracerStatisticReporterManager = SofaTracerStatisticReporterCycleTimesManager
@@ -48,16 +47,13 @@ public class SofaTracerStatisticReporterCycleTimesManager {
         }
     }
 
-    /***
-     * 定时任务以此为入口:获取指定周期时间的定时任务
-     * @param cycleTime 周期时间单位：秒
-     * @return SofaTracerStatisticReporterManager 固定周期的任务管理器
+    /**
+     * The timed task uses this as the entry: Get the scheduled task with the specified cycle time
+     * @param cycleTime cycle time unit: second
+     * @return SofaTracerStatisticReporterManager Fixed-cycle task manager
      */
     public static SofaTracerStatisticReporterManager getSofaTracerStatisticReporterManager(Long cycleTime) {
-        if (cycleTime == null) {
-            return null;
-        }
-        if (cycleTime <= 0) {
+        if (cycleTime == null || cycleTime <= 0) {
             return null;
         }
         SofaTracerStatisticReporterManager existedManager = cycleTimesManager.get(cycleTime);

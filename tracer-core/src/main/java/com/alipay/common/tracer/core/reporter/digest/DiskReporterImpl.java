@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * DiskReporterImpl
- * 内部定制化实现
  *
  * @author yangguanchao
  * @since 2017/07/14

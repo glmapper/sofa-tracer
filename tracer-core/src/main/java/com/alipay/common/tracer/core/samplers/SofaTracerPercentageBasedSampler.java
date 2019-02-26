@@ -20,6 +20,7 @@ import com.alipay.common.tracer.core.constants.SofaTracerConstant;
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,9 +31,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SofaTracerPercentageBasedSampler implements Sampler {
 
-    public static final String      TYPE    = "PercentageBasedSampler";
+    private AtomicBoolean           isCloseSampler = new AtomicBoolean(false);
 
-    private final AtomicInteger     counter = new AtomicInteger(0);
+    public static final String      TYPE           = "PercentageBasedSampler";
+
+    private final AtomicInteger     counter        = new AtomicInteger(0);
     private final BitSet            sampleDecisions;
     private final SamplerProperties configuration;
 
@@ -75,7 +78,12 @@ public class SofaTracerPercentageBasedSampler implements Sampler {
 
     @Override
     public void close() {
-        //do nothing
+        setIsCloseSampler(new AtomicBoolean(false));
+    }
+
+    @Override
+    public boolean isClosedSampler() {
+        return getIsCloseSampler().get();
     }
 
     /**
@@ -104,5 +112,13 @@ public class SofaTracerPercentageBasedSampler implements Sampler {
             }
         }
         return result;
+    }
+
+    public AtomicBoolean getIsCloseSampler() {
+        return isCloseSampler;
+    }
+
+    public void setIsCloseSampler(AtomicBoolean isCloseSampler) {
+        this.isCloseSampler = isCloseSampler;
     }
 }

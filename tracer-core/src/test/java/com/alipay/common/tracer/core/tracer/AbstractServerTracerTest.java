@@ -42,37 +42,41 @@ public class AbstractServerTracerTest {
     @Test
     public void getClientDigestReporterLogName() {
         //user super method
-        String clientDigestReporterLogName = serverTracer.getClientDigestReporterLogName();
-        Assert.assertTrue(clientDigestReporterLogName == null);
+        String clientDigestReporterLogName = serverTracer.getReporterLogName();
+        Assert.assertTrue(clientDigestReporterLogName.equals(serverTracer
+            .getServerDigestReporterLogName()));
     }
 
     @Test
     public void getClientDigestReporterRollingKey() {
         //user super method
-        String clientDigestReporterRollingKey = serverTracer.getClientDigestReporterRollingKey();
-        Assert.assertTrue(clientDigestReporterRollingKey == null);
+        String clientDigestReporterRollingKey = serverTracer.getReporterRollingKey();
+        Assert.assertTrue(clientDigestReporterRollingKey.equals(serverTracer
+            .getServerDigestReporterRollingKey()));
     }
 
     @Test
     public void getClientDigestReporterLogNameKey() {
         //user super method
-        String clientDigestReporterLogNameKey = serverTracer.getClientDigestReporterLogNameKey();
-        Assert.assertTrue(clientDigestReporterLogNameKey == null);
+        String clientDigestReporterLogNameKey = serverTracer.getReporterLogNameKey();
+        Assert.assertTrue(clientDigestReporterLogNameKey.equals(serverTracer
+            .getServerDigestReporterLogNameKey()));
     }
 
     @Test
     public void getClientDigestEncoder() {
         //user super method
-        SpanEncoder<SofaTracerSpan> clientDigestEncoder = serverTracer.getClientDigestEncoder();
-        Assert.assertTrue(clientDigestEncoder == null);
+        SpanEncoder<SofaTracerSpan> clientDigestEncoder = serverTracer.getEncoder();
+        Assert.assertTrue(clientDigestEncoder == serverTracer.getServerDigestEncoder());
     }
 
     @Test
     public void generateClientStatReporter() {
         //user super method
         AbstractSofaTracerStatisticReporter abstractSofaTracerStatisticReporter = serverTracer
-            .generateClientStatReporter();
-        Assert.assertTrue(abstractSofaTracerStatisticReporter == null);
+            .generateStatReporter();
+        Assert.assertTrue(abstractSofaTracerStatisticReporter == serverTracer
+            .generateServerStatReporter());
     }
 
     class TestServerTracer extends AbstractServerTracer {

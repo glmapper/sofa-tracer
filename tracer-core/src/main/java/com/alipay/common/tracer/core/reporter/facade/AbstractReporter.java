@@ -17,43 +17,40 @@
 package com.alipay.common.tracer.core.reporter.facade;
 
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * AbstractDiskReporter
  *
- * 持久化抽象类,摘要持久化和统计持久化
  * @author yangguanchao
  * @since 2017/07/14
  */
 public abstract class AbstractReporter implements Reporter {
 
-    /***
-     * 是否关闭摘要日志打印,默认不关闭,关闭意味着关闭摘要也关闭统计
+    /**
+     * Whether to turn off log printing
      */
     private AtomicBoolean isClosePrint = new AtomicBoolean(false);
 
-    /***
-     * 输出 span
-     * @param span 要被输出的 span
+    /**
+     * do report
+     * @param span current span data
      */
     @Override
     public void report(SofaTracerSpan span) {
         if (span == null) {
             return;
         }
-        //关闭所有日志打印:关闭摘要和统计
+        // Turn off all log printing: turn off digest and statistics
         if (isClosePrint.get()) {
             return;
         }
         this.doReport(span);
     }
 
-    /***
-     * 抽象方法具体输出方式落磁盘还会远程上报需要子类实现
-     *
-     * @param span 要被输出的 span
+    /**
+     * Each implementation class needs to implement the specific logic of doReport
+     * @param span current span data
      */
     public abstract void doReport(SofaTracerSpan span);
 

@@ -19,6 +19,7 @@ package com.alipay.common.tracer.core.samplers;
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
 
 public interface Sampler {
+
     /**
      * @param sofaTracerSpan The operation name set on the span
      * @return whether or not the new trace should be sampled
@@ -31,4 +32,6 @@ public interface Sampler {
      * Release any resources used by the sampler.
      */
     void close();
+
+    boolean isClosedSampler();
 }

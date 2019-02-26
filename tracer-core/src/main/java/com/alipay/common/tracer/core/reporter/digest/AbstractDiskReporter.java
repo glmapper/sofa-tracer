@@ -18,7 +18,6 @@ package com.alipay.common.tracer.core.reporter.digest;
 
 import com.alipay.common.tracer.core.configuration.SofaTracerConfiguration;
 import com.alipay.common.tracer.core.constants.SofaTracerConstant;
-import com.alipay.common.tracer.core.context.span.SofaTracerSpanContext;
 import com.alipay.common.tracer.core.reporter.facade.AbstractReporter;
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
 import com.alipay.common.tracer.core.utils.StringUtils;
@@ -26,73 +25,62 @@ import com.alipay.common.tracer.core.utils.StringUtils;
 import java.util.Map;
 
 /**
- * AbstractDiskReporter
+ * AbstractDiskReporter ： Reporter based on AbstractReporter extension
  *
- * 持久化抽象类,摘要持久化和统计持久化
+ * It will be persist data to disk
+ *
  * @author yangguanchao
  * @since 2017/07/14
  */
 public abstract class AbstractDiskReporter extends AbstractReporter {
 
-    /***
-     * 获取 Reporter 实例类型
-     * @return 类型
-     */
     @Override
     public String getReporterType() {
-        //默认用摘要日志的类型作为 span 的类型
+        // By default, the type of the digest log is used as the type of span
         return this.getDigestReporterType();
     }
 
-    /***
-     * 输出 span
-     * @param span 要被输出的 span
-     */
     @Override
     public void doReport(SofaTracerSpan span) {
-        //设置日志类型,方便打印，否则无法正确打印
+        // Set the log type, otherwise it will not print correctly
         span.setLogType(this.getDigestReporterType());
         if (!isDisableDigestLog(span)) {
-            //打印摘要日志
+            // do print digest log
             this.digestReport(span);
         }
-        //统计日志默认是不关闭的
+        // do print stat log
         this.statisticReport(span);
     }
 
-    /***
-     * 获取摘要 Reporter 实例类型
-     * @return 类型
+    /**
+     * Get Digest Reporter Instance Type
+     * @return digest reporter type
      */
     public abstract String getDigestReporterType();
 
-    /***
-     * 获取统计 Reporter 实例类型
-     * @return 类型
+    /**
+     * Get Stat Reporter Instance Type
+     * @return stat reporter type
      */
     public abstract String getStatReporterType();
 
-    /***
-     * 打印摘要日志
-     * @param span 被打印 span
+    /**
+     * To print digest log
+     * @param span
      */
     public abstract void digestReport(SofaTracerSpan span);
 
-    /***
-     * 打印统计日志
-     * @param span 被统计 span
+    /**
+     * To print stat log
+     * @param span
      */
     public abstract void statisticReport(SofaTracerSpan span);
 
     protected boolean isDisableDigestLog(SofaTracerSpan span) {
-        if (span == null || span.context() == null) {
+        if (span.context() == null) {
             return true;
         }
-        SofaTracerSpanContext sofaTracerSpanContext = (SofaTracerSpanContext) span.context();
-        // sampled is false; this span will not be report
-        if (!sofaTracerSpanContext.isSampled()) {
-            return true;
-        }
+
         boolean allDisabled = Boolean.TRUE.toString().equalsIgnoreCase(
             SofaTracerConfiguration
                 .getProperty(SofaTracerConfiguration.DISABLE_MIDDLEWARE_DIGEST_LOG_KEY));
@@ -103,18 +91,10 @@ public abstract class AbstractDiskReporter extends AbstractReporter {
 
         Map<String, String> disableConfiguration = SofaTracerConfiguration
             .getMapEmptyIfNull(SofaTracerConfiguration.DISABLE_DIGEST_LOG_KEY);
-        //摘要日志类型
+        // check digest log type
         String logType = StringUtils.EMPTY_STRING + span.getLogType();
         if (StringUtils.isBlank(logType)) {
-            //摘要日志类型为空,就不打印了
             return true;
-        }
-        // rpc-2-jvm特殊处理, 适配rpc2jvm中关闭digest而只打印stat的情况
-        if (SofaTracerConstant.RPC_2_JVM_DIGEST_LOG_NAME.equals(logType)) {
-            if (Boolean.FALSE.toString().equalsIgnoreCase(
-                SofaTracerConfiguration.getProperty("enable_rpc_2_jvm_digest_log"))) {
-                return true;
-            }
         }
         return Boolean.TRUE.toString().equalsIgnoreCase(disableConfiguration.get(logType));
     }

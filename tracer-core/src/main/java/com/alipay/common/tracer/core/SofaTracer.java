@@ -28,6 +28,7 @@ import com.alipay.common.tracer.core.samplers.Sampler;
 import com.alipay.common.tracer.core.samplers.SamplerFactory;
 import com.alipay.common.tracer.core.samplers.SamplingStatus;
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
+import com.alipay.common.tracer.core.span.SofaTracerSpanFactory;
 import com.alipay.common.tracer.core.span.SofaTracerSpanReferenceRelationship;
 import com.alipay.common.tracer.core.utils.AssertUtils;
 import com.alipay.common.tracer.core.utils.StringUtils;
@@ -41,40 +42,34 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * SofaTracer
+ *
+ * SofaTracer : Tracer instance based on the Opentracing API
  *
  * @author yangguanchao
+ * @author guolei.sgl
  * @since 2017/06/17
  */
 public class SofaTracer implements Tracer {
 
-    /**
-     * 正常 TRACE 开始的 spanId
-     */
+    /** default root spanId */
     public static final String        ROOT_SPAN_ID = "0";
 
-    /***
-     * 标示 tracer 的类型
-     */
+    /** tracerType for SOFATracer api Expansion */
     private final String              tracerType;
 
-    /***
-     * 作为客户端运行时的 Reporter
-     */
+    /** Client Reporter */
     private final Reporter            clientReporter;
 
-    /***
-     * 作为服务端运行时的 Reporter
-     */
+    /** Server Reporter */
     private final Reporter            serverReporter;
 
-    /***
-     * 这个 tracerTags 主要用于缓存和 tracer 全局相关的一些信息
+    /**
+     * This tracerTags is mainly used to cache some information related to the tracer globally.
      */
     private final Map<String, Object> tracerTags   = new ConcurrentHashMap<String, Object>();
 
     /**
-     * 支持 sampler 即根据 rate 采样（主要在入口起作用）
+     * The sampling mode of the current Tracer instance
      */
     private final Sampler             sampler;
 
@@ -105,7 +100,6 @@ public class SofaTracer implements Tracer {
 
     @Override
     public <C> SpanContext extract(Format<C> format, C carrier) {
-
         RegistryExtractorInjector<C> registryExtractor = TracerFormatRegistry.getRegistry(format);
         if (registryExtractor == null) {
             throw new IllegalArgumentException("Unsupported extractor format: " + format);
@@ -113,29 +107,43 @@ public class SofaTracer implements Tracer {
         return registryExtractor.extract(carrier);
     }
 
+    /**
+     *
+     * SOFATracer extends the functionality for data reporting
+     *
+     * This will report two data patterns,
+     * one reported to zipkin, and one to print digest logs to disk
+     *
+     * @param span
+     */
     public void reportSpan(SofaTracerSpan span) {
         if (span == null) {
             return;
         }
-        // //sampler is support &  current span is root span
-        if (sampler != null && span.getParentSofaTracerSpan() == null) {
-            span.getSofaTracerSpanContext().setSampled(sampler.sample(span).isSampled());
+        // Sampling judgment
+        boolean sampled = span.getSofaTracerSpanContext().isSampled();
+        if (span.getSofaTracer().getSampler() != null) {
+            boolean isClosedSampler = span.getSofaTracer().getSampler().isClosedSampler();
+            if (!sampled || isClosedSampler) {
+                return;
+            }
         }
-        //invoke listener
+
+        // invoke listener to report zipkin
         this.invokeReportListeners(span);
-        //客户端、服务端
+        // span from client extension
         if (span.isClient()) {
-            //摘要
             if (this.clientReporter != null) {
                 this.clientReporter.report(span);
             }
-        } else if (span.isServer()) {
-            //摘要
+        }
+        // span from server extension
+        else if (span.isServer()) {
             if (this.serverReporter != null) {
                 this.serverReporter.report(span);
             }
         } else {
-            //ignore 不统计
+            //ignore
             SelfLog.warn("Span reported neither client nor server.Ignore!");
         }
     }
@@ -150,7 +158,6 @@ public class SofaTracer implements Tracer {
         if (this.serverReporter != null) {
             this.serverReporter.close();
         }
-
         if (sampler != null) {
             this.sampler.close();
         }
@@ -191,16 +198,15 @@ public class SofaTracer implements Tracer {
         }
     }
 
-    /***
-     * SofaTracerSpanBuilder 用于在 Tracer 内部构建 Span
+    /**
+     * SofaTracerSpanBuilder is used to build Span inside SOFATracer
      */
     public class SofaTracerSpanBuilder implements io.opentracing.Tracer.SpanBuilder {
 
+        /** default operation name */
         private String                                    operationName = StringUtils.EMPTY_STRING;
 
-        /***
-         * 默认初始化时间
-         */
+        /** default initialization time */
         private long                                      startTime     = -1;
 
         /**
@@ -246,7 +252,7 @@ public class SofaTracer implements Tracer {
                     (SofaTracerSpanContext) referencedContext, referenceType));
             } else {
                 if (references.size() == 1) {
-                    //要保证有顺序
+                    // To ensure order
                     references = new ArrayList<SofaTracerSpanReferenceRelationship>(references);
                 }
                 references.add(new SofaTracerSpanReferenceRelationship(
@@ -281,23 +287,24 @@ public class SofaTracer implements Tracer {
 
         @Override
         public Span start() {
-            SofaTracerSpanContext sofaTracerSpanContext = null;
+            SofaTracerSpanContext sofaTracerSpanContext;
             if (this.references != null && this.references.size() > 0) {
-                //存在父上下文
+                // parent context exist
                 sofaTracerSpanContext = this.createChildContext();
             } else {
-                //从新开始新的节点
+                // start a new sofaTracerSpanContext node
                 sofaTracerSpanContext = this.createRootSpanContext();
             }
 
             long begin = this.startTime > 0 ? this.startTime : System.currentTimeMillis();
-            SofaTracerSpan sofaTracerSpan = new SofaTracerSpan(SofaTracer.this, begin,
-                this.references, this.operationName, sofaTracerSpanContext, this.tags);
+
+            SofaTracerSpan sofaTracerSpan = SofaTracerSpanFactory.newSofaTracerSpan(
+                SofaTracer.this, begin, this.references, this.operationName, sofaTracerSpanContext,
+                this.tags);
 
             // calculate isSampled，but do not change parent's sampler behaviour
             boolean isSampled = calculateSampler(sofaTracerSpan);
             sofaTracerSpanContext.setSampled(isSampled);
-
             return sofaTracerSpan;
         }
 
@@ -311,24 +318,22 @@ public class SofaTracer implements Tracer {
                     SamplingStatus samplingStatus = sampler.sample(sofaTracerSpan);
                     if (samplingStatus.isSampled()) {
                         isSampled = true;
-                        //发生采样后,将相关属性记录
+                        // After the sampling occurs, the related attribute records
                         this.tags.putAll(samplingStatus.getTags());
                     }
                 }
             }
-
             return isSampled;
         }
 
         private SofaTracerSpanContext createRootSpanContext() {
-            //生成 traceId
+            // create traceId
             String traceId = TraceIdGenerator.generate();
             return new SofaTracerSpanContext(traceId, ROOT_SPAN_ID, StringUtils.EMPTY_STRING);
         }
 
         private SofaTracerSpanContext createChildContext() {
             SofaTracerSpanContext preferredReference = preferredReference();
-
             SofaTracerSpanContext sofaTracerSpanContext = new SofaTracerSpanContext(
                 preferredReference.getTraceId(), preferredReference.nextChildContextId(),
                 preferredReference.getSpanId(), preferredReference.isSampled());
@@ -348,7 +353,7 @@ public class SofaTracer implements Tracer {
             }
             Map<String, String> baggage = null;
             for (SofaTracerSpanReferenceRelationship reference : references) {
-                Map<String, String> referenceBaggage = null;
+                Map<String, String> referenceBaggage;
                 if (isBiz) {
                     referenceBaggage = reference.getSofaTracerSpanContext().getBizBaggage();
                 } else {
@@ -379,18 +384,15 @@ public class SofaTracer implements Tracer {
         }
     }
 
+    /**
+     * SofaTracer Builder
+     */
     public static final class Builder {
 
         private final String        tracerType;
 
-        /***
-         * 作为客户端运行时的 Reporter
-         */
         private Reporter            clientReporter;
 
-        /***
-         * 作为服务端运行时的 Reporter
-         */
         private Reporter            serverReporter;
 
         private Map<String, Object> tracerTags = new HashMap<String, Object>();
@@ -402,31 +404,16 @@ public class SofaTracer implements Tracer {
             this.tracerType = tracerType;
         }
 
-        /***
-         * 客户端日志功能
-         * @param clientReporter 日志功能,落地到磁盘或者上报 zipkin
-         * @return Builder
-         */
         public Builder withClientReporter(Reporter clientReporter) {
             this.clientReporter = clientReporter;
             return this;
         }
 
-        /***
-         * 服务端日志功能
-         * @param serverReporter 日志功能,落地到磁盘或者上报 zipkin
-         * @return Builder
-         */
         public Builder withServerReporter(Reporter serverReporter) {
             this.serverReporter = serverReporter;
             return this;
         }
 
-        /***
-         * 采样器入口 span 生效
-         * @param sampler 采样器
-         * @return Builder
-         */
         public Builder withSampler(Sampler sampler) {
             this.sampler = sampler;
             return this;

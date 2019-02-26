@@ -32,23 +32,58 @@ public abstract class AbstractServerTracer extends AbstractTracer {
         super(tracerType, false, true);
     }
 
-    protected String getClientDigestReporterLogName() {
-        return null;
+    @Override
+    protected String getReporterLogName() {
+        return getServerDigestReporterLogName();
     }
 
-    protected String getClientDigestReporterRollingKey() {
-        return null;
+    @Override
+    protected String getReporterRollingKey() {
+        return getServerDigestReporterRollingKey();
     }
 
-    protected String getClientDigestReporterLogNameKey() {
-        return null;
+    @Override
+    protected String getReporterLogNameKey() {
+        return getServerDigestReporterLogNameKey();
     }
 
-    protected SpanEncoder<SofaTracerSpan> getClientDigestEncoder() {
-        return null;
+    @Override
+    protected SpanEncoder<SofaTracerSpan> getEncoder() {
+        return getServerDigestEncoder();
     }
 
-    protected AbstractSofaTracerStatisticReporter generateClientStatReporter() {
-        return null;
+    @Override
+    protected AbstractSofaTracerStatisticReporter generateStatReporter() {
+        return generateServerStatReporter();
     }
+
+    /**
+     * server digest log name , spring-mvc-digest.log E.g
+     * @return
+     */
+    protected abstract String getServerDigestReporterLogName();
+
+    /**
+     * server digest rolling key , spring_mvc_digest_rolling E.g
+     * @return
+     */
+    protected abstract String getServerDigestReporterRollingKey();
+
+    /**
+     * server digest log name key , spring_mvc_digest_log_name E.g
+     * @return
+     */
+    protected abstract String getServerDigestReporterLogNameKey();
+
+    /**
+     * server digest encoder , SpringMvcDigestJsonEncoder E.g
+     * @return
+     */
+    protected abstract SpanEncoder<SofaTracerSpan> getServerDigestEncoder();
+
+    /**
+     * server stat report , SpringMvcStatReporter E.g
+     * @return
+     */
+    protected abstract AbstractSofaTracerStatisticReporter generateServerStatReporter();
 }

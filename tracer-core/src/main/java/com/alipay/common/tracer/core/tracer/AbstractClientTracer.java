@@ -21,6 +21,7 @@ import com.alipay.common.tracer.core.reporter.stat.AbstractSofaTracerStatisticRe
 import com.alipay.common.tracer.core.span.SofaTracerSpan;
 
 /**
+ *
  * AbstractClientTracer
  *
  * @author yangguanchao
@@ -33,23 +34,59 @@ public abstract class AbstractClientTracer extends AbstractTracer {
         super(tracerType, true, false);
     }
 
-    protected String getServerDigestReporterLogName() {
-        return null;
+    @Override
+    protected String getReporterLogName() {
+        return getClientDigestReporterLogName();
     }
 
-    protected String getServerDigestReporterRollingKey() {
-        return null;
+    @Override
+    protected String getReporterRollingKey() {
+        return getClientDigestReporterRollingKey();
     }
 
-    protected String getServerDigestReporterLogNameKey() {
-        return null;
+    @Override
+    protected String getReporterLogNameKey() {
+        return getClientDigestReporterLogNameKey();
     }
 
-    protected SpanEncoder<SofaTracerSpan> getServerDigestEncoder() {
-        return null;
+    @Override
+    protected SpanEncoder<SofaTracerSpan> getEncoder() {
+        return getClientDigestEncoder();
     }
 
-    protected AbstractSofaTracerStatisticReporter generateServerStatReporter() {
-        return null;
+    @Override
+    protected AbstractSofaTracerStatisticReporter generateStatReporter() {
+        return generateClientStatReporter();
     }
+
+    /**
+     * client digest log name , httpclient-digest.log E.g
+     * @return
+     */
+    protected abstract String getClientDigestReporterLogName();
+
+    /**
+     * client digest rolling key , httpclient_stat_rolling E.g
+     * @return
+     */
+    protected abstract String getClientDigestReporterRollingKey();
+
+    /**
+     * client digest log name , httpclient_digest_log_name E.g
+     * @return
+     */
+    protected abstract String getClientDigestReporterLogNameKey();
+
+    /**
+     * client digest Encoder , HttpClientDigestJsonEncoder E.g
+     * @return
+     */
+    protected abstract SpanEncoder<SofaTracerSpan> getClientDigestEncoder();
+
+    /**
+     * client stat Reporter , HttpClientStatJsonReporter E.g
+     * @return
+     */
+    protected abstract AbstractSofaTracerStatisticReporter generateClientStatReporter();
+
 }

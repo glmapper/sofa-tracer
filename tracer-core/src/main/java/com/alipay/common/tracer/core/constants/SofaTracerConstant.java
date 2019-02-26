@@ -31,62 +31,56 @@ public class SofaTracerConstant {
     /**
      * Span tag key to describe the type of sampler used on the root span.
      */
-    public static final String  SAMPLER_TYPE_TAG_KEY      = "sampler.type";
+    public static final String  SAMPLER_TYPE_TAG_KEY  = "sampler.type";
 
     /**
      * Span tag key to describe the parameter of the sampler used on the root span.
      */
-    public static final String  SAMPLER_PARAM_TAG_KEY     = "sampler.param";
+    public static final String  SAMPLER_PARAM_TAG_KEY = "sampler.param";
 
-    public static final String  DEFAULT_UTF8_ENCODING     = "UTF-8";
+    public static final String  DEFAULT_UTF8_ENCODING = "UTF-8";
 
-    public static final Charset DEFAULT_UTF8_CHARSET      = Charset.forName(DEFAULT_UTF8_ENCODING);
+    public static final Charset DEFAULT_UTF8_CHARSET  = Charset.forName(DEFAULT_UTF8_ENCODING);
 
-    public static final String  RPC_2_JVM_DIGEST_LOG_NAME = "rpc-2-jvm-digest.log";
+    //******************* span encoder constant start ************
 
-    //******************* span encoder constant start *****************
+    /** time-consuming unit */
+    public static final String  MS                    = "ms";
 
-    /**
-     * 耗时单位
-     */
-    public static final String  MS                        = "ms";
-
-    /***
-     * 字节单位
-     */
-    public static final String  BYTE                      = "B";
+    /**  byte unit */
+    public static final String  BYTE                  = "B";
 
     /**
-     * Tracer 上下文嵌套的最大深度
+     * Maximum depth of the Tracer context nesting
      */
-    public static final int     MAX_LAYER                 = 100;
+    public static final int     MAX_LAYER             = 100;
 
-    //******************* span encoder constant end *****************
+    //******************* span encoder constant end **************
 
-    //******************* exception constant start *****************
+    //******************* exception constant start ***************
 
-    /***
-     * 业务异常
+    /**
+     * Business exception
      */
-    public static final String  BIZ_ERROR                 = "biz_error";
+    public static final String  BIZ_ERROR             = "biz_error";
 
     //******************* exception constant end *****************
 
-    /***
-     * ============= baggage key start ==============
-     */
+    //******************* baggage key start **********************
+
     /**
-     * 必须保持一致,baggage key 压测标识
+     * Baggage key for pressure measurement mark
      */
-    public static final String  LOAD_TEST_TAG             = "mark";
+    public static final String  LOAD_TEST_TAG         = "mark";
 
-    /***
-     * 压测标识必须为 T 即 baggage 中 mark=T 才可以打印到 shdow 文件
+    /**
+     * The pressure measurement mark must be T, that is, mark=T in baggage.
+     * current span data will be printed in Log file in the shadow directory
      */
-    public static final String  LOAD_TEST_VALUE           = "T";
+    public static final String  LOAD_TEST_VALUE       = "T";
 
-    /***
-     * 非压测情况下的返回值 {@link AbstractSofaTracerStatisticReporter}
+    /**
+     * Return value in case of non-pressure measurement {@link AbstractSofaTracerStatisticReporter}
      */
-    public static final String  NON_LOAD_TEST_VALUE       = "F";
+    public static final String  NON_LOAD_TEST_VALUE   = "F";
 }

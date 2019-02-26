@@ -109,9 +109,7 @@ public class AsyncCommonDigestAppenderManager {
 
     public void start(final String workerName) {
         this.threadFactory.setWorkName(workerName);
-
         this.ringBuffer = this.disruptor.start();
-
     }
 
     public void addAppender(String logType, TraceAppender appender, SpanEncoder encoder) {

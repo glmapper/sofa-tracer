@@ -90,6 +90,8 @@ public class SpringMvcSofaTracerFilter implements Filter {
             //filter end
             httpStatus = responseWrapper.getStatus();
             responseSize = responseWrapper.getContentLength();
+        } catch (Exception e) {
+            httpStatus = 500;
         } finally {
             if (springMvcSpan != null) {
                 springMvcSpan.setTag(CommonSpanTags.RESP_SIZE, responseSize);
@@ -131,14 +133,15 @@ public class SpringMvcSofaTracerFilter implements Filter {
      */
     public SofaTracerSpanContext getSpanContextFromRequest(HttpServletRequest request) {
         HashMap<String, String> headers = new HashMap<String, String>();
-
         Enumeration headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String key = (String) headerNames.nextElement();
             String value = request.getHeader(key);
             headers.put(key, value);
         }
-
+        if (headers.isEmpty() || !headers.containsKey("X-B3-TraceId")) {
+            return null;
+        }
         SofaTracer tracer = springMvcTracer.getSofaTracer();
         SofaTracerSpanContext spanContext = (SofaTracerSpanContext) tracer.extract(
             ExtendFormat.Builtin.B3_HTTP_HEADERS, new SpringMvcHeadersCarrier(headers));

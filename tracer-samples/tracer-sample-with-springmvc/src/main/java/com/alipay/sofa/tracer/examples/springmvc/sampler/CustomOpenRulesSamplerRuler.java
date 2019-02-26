@@ -60,4 +60,9 @@ public class CustomOpenRulesSamplerRuler implements Sampler {
     public void close() {
 
     }
+
+    @Override
+    public boolean isClosedSampler() {
+        return false;
+    }
 }
